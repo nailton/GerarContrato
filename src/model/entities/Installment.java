@@ -6,12 +6,12 @@ public class Installment {
     private Date dueDate;
     private Double amount;
 
-    public Installment() {
-    }
+    private Contract contract;
 
-    public Installment(Date dueDate, Double amount) {
+    public Installment(Date dueDate, Double amount, Contract contract) {
         this.dueDate = dueDate;
         this.amount = amount;
+        this.contract = contract;
     }
 
     public Date getDueDate() {
