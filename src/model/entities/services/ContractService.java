@@ -5,28 +5,25 @@ import model.entities.Installment;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 
 public class ContractService {
-    private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private OnlinePaymentService onlinePaymentService;
 
-    public void processContract(Contract contract, Integer months, OnlinePaymentService onlinePaymentService) {
-        double amount = contract.getTotalValue() / months;
-        Date currentDate = contract.getDate();
-        Calendar c = Calendar.getInstance();
-        c.setTime(currentDate);
+    public ContractService(OnlinePaymentService onlinePaymentService) {
+        this.onlinePaymentService = onlinePaymentService;
+    }
 
+    public void processContract(Contract contract, Integer months) {
+        double basicQuota = contract.getTotalValue() / months;
 
-        for (int i = 0; i < months; i++) {
-            c.add(Calendar.MONTH, 1);
-            Date dueDate = c.getTime();
+        for (int i = 1; i <= months; i++) {
+            LocalDate dueDate = contract.getDate().plusMonths(i);
 
-            double interest = onlinePaymentService.interest(amount, i + 1);
-            double fee = onlinePaymentService.paymentFee(amount + interest);
+            double interest = onlinePaymentService.interest(basicQuota, i);
+            double fee = onlinePaymentService.paymentFee(basicQuota + interest);
 
-            Installment installment = new Installment(dueDate, amount + interest + fee, contract);
-            System.out.println(dateFormat.format(installment.getDueDate()) + " - " + String.format("%.2f", installment.getAmount()));
+            contract.getInstallments().add(new Installment(dueDate, basicQuota + interest + fee, contract));
         }
     }
 }
